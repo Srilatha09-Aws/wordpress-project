@@ -1,0 +1,69 @@
+                                    Create a WordPress website using EC2 and RDS
+To create a WordPress website, first, we need to 
+1.	Launch an ec2 instance (Launch Amazon Linux 2 –any os (I am using free tier))
+2.	Launch rds. cluster
+3.	Configure the EC2 instance to connect to RDS (we need to connect the EC2 instance to RDS)
+For that, first we need to install MySQL client in ec2 instance.
+These are commands to install the MySQL client 
+Connect to the ec2 instance by using connect so that I will connect 
+sudo yum install -y mysql     ---command to install mysql
+Export mysql endpoint as MySQSL_HOST Variable
+export MYSQL_HOST=<your-RDS-endpoint>
+Example : export MYSQL_HOST=yt-wordpress.cfpgnjehw330.ap-south-1.rds.amazonaws.com
+Now, connect to Mysql to create the required user users that we are going to use
+Connect to RDS using the command below (we can replace the host info and user info as per your details)
+mysql -h yt-wordpress.cfpgnjehw330.ap-south-1.rds.amazonaws.com -P 3306 -u admin -p
+Create the required Database and user and provide permissions to the newly created user on the schema we created.
+CREATE DATABASE wordpress;
+CREATE USER 'wduser' IDENTIFIED BY 'Srilatha9';
+GRANT ALL PRIVILEGES ON wordpress.* TO wduser;
+FLUSH PRIVILEGES;
+ Exit
+
+Now install and configure apache
+>sudo yum install -y httpd    -To install apache server
+ >Start Apache Service   ----once install done start the service
+ >sudo service httpd start  
+Download a wordpress template and unzip the wordpress
+ >wget https://wordpress.org/latest.tar.gz
+ >tar -xzf latest.tar.gz
+ >ls
+When you enter ls it should display these files and directory "latest.tar.gz" and "wordpress"
+  >cd wordpress
+create a wp-config file from the sample file already provided
+ >cp wp-config-sample.php wp-config.php
+edit the wp-config.php file to point to database
+ >vim wp-config.php
+Replace the Database_name_here , "username_here", "password_here" and "rds-endpoint-name" with valid info
+// ** MySQL settings - You can get this info from your web host ** //
+/** The name of the database for WordPress */
+define(‘DB_NAME', 'database_name_here' );
+
+/** MySQL database username */
+define( 'DB_USER', 'username_here' );
+
+/** MySQL database password */
+define( 'DB_PASSWORD', 'password_here' );
+
+/** MySQL hostname */
+define(‘DB_HOST', 'rds-endpoint-name' );
+Now go to the link below and it provides some information to update the wp-config file. It looks like below shared one.
+https://api.wordpress.org/secret-key/1.1/salt/
+Acquire the valid information and update wp-config file accordingly
+define('AUTH_KEY',         '+7CA?k*Ju&8eCfg=/aFKo0tO5Tn73Cg 9|Ed73k|Gw(3^');
+define('SECURE_AUTH_KEY',  ':H$M&FvbE6t:EwH5ik/D!@]@%Dv3!-Q^hNH3*O+-$L6c*|');
+define('LOGGED_IN_KEY',    'g9?;b_A BNW[; $9N^E2^jt$LkF 8_^baTmjhp<eE5GUd');
+define('NONCE_KEY',        'G;Wf@|;jzQh>R812&-x^cPoq`tOOu>q)#JVa Y%No%.JpZ[');
+define('AUTH_SALT',        'up^dE)4&x/?]1[thjghhjjhz6Vhiohr(dVMh+d5=R<.l_#l');
+define('SECURE_AUTH_SALT', '@%ka=9?}BQ[m#29D+@jkgjkhjkhjkhkjhkjdTZ`MT{|fypE~');
+define('LOGGED_IN_SALT',   'o!UX5|LW4eijhjkbhkjhkjkjbnjjb/1JSPS?e`YW*nrWb|FG ');
+define('NONCE_SALT',       '+t}kH4DA`jhbjkbjkbjkbjkbjkbt8(iWX(]e?&tV;k:>|)IoE');
+Now install dependencies
+sudo amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2
+come back to home directory and copy all content to /var/www/html, Then restart the service.
+cd /home/ec2-user
+sudo cp -r wordpress/* /var/www/html/
+sudo service httpd restart
+Get your instance public IP and Paste it in browser, It should give you wordpress initial configuration page.
+
+
